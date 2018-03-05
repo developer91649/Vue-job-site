@@ -1,0 +1,655 @@
+{% extends "new/projects/layout_tmp.html" %}
+
+{% block title %}Create project | jobdone.net{% endblock %}
+
+
+{% block scripts %}
+{% endblock %}
+
+{% block body %}
+<main id="sm-project-post">
+    <div class="main-content">
+        <!--<div class="container mt-3 mt-sm-5">-->
+            <!--<div class="row justify-content-center">-->
+                <!--<div class="col-md-6">-->
+                    <!--<form id="form" method="post" v-on:submit="validateForm">-->
+                        <!--<div class="form-group">-->
+                            <!--<label class="form-control-label" for="name">Name</label>-->
+                            <!--<input id="name" name="name" class="form-control" type="text" v-model="name" v-bind:class="{ 'is-invalid': attemptSubmit && missingName }">-->
+                            <!--<div class="invalid-feedback">This field is required.</div>-->
+                        <!--</div>&lt;!&ndash; /form-group &ndash;&gt;-->
+
+                        <!--<div class="form-group">-->
+                            <!--<label class="form-control-label" for="number">Enter a number between 1 and 10</label>-->
+                            <!--<input id="number" name="number" class="form-control" type="text" v-model="number" v-bind:class="{ 'is-invalid': attemptSubmit && wrongNumber }">-->
+                            <!--<div class="invalid-feedback">Make sure this is a number between 1 and 10.</div>-->
+                        <!--</div>&lt;!&ndash; /form-group &ndash;&gt;-->
+
+                        <!--<button class="btn btn-primary">Submit</button>-->
+                    <!--</form>-->
+                <!--</div>&lt;!&ndash; /col &ndash;&gt;-->
+            <!--</div>&lt;!&ndash; /row &ndash;&gt;-->
+        <!--</div>&lt;!&ndash; /container &ndash;&gt;-->
+
+        <div class="project-header">
+            <div class ="project-logo"></div>
+        </div>
+        <div class="row tell-us-top">
+            <div class="col-md-12">
+                <h1 class="tell-us-header margin-bottom-21">Tell us what you need done</h1>
+                 <p>Get free quotes from skilled freelancers within minutes, view profiles, ratings and portfolios and chat with them . Pay the freelancer only when you are 100% satisfied with their work.</p>
+            </div>
+        </div>
+
+        <div class="row margin-top-50">
+            <div class="col-md-12">
+                {{ form.csrf_token }}
+
+                <form class="form" method="post" role="form" id="buyer-request-form" class="buyer-request-form" >
+                    <div class="form-group margin-bottom-42"  >
+                        <label for="title" class="post-form-group-label">Choose a name for your project</label>
+                        <input class="form-control project-title-input" id="title" name="title" placeholder="e.g. Build me a website" type="text" value="" v-model="fields.title"   v-bind:class="{'is_warning': leastTitle , 'is_invalid': attemptSubmit && missingTitle}">
+                        <p class="warning_feedback" v-bind:class="{'is_warning': leastTitle }">Please insert at least 10 characters</p>
+                        <p class="invalid_feedback" v-bind:class="{'is_invalid' :  attemptSubmit && missingTitle}">Project Name field is required</p>
+                    </div>
+
+                    <div class="form-group margin-bottom-20">
+                        <label for="description" class="post-form-group-label margin-bottom-21">Tell us more about your project</label>
+                        <p class="post-form-group-p">Great project descriptions include a little bit about yourself, details of what you are trying to achieve, and any decisions that you have already made about your project. If there are things you are unsure of, don't worry a freelancer will be able to help you fill in the blanks</p>
+                        <textarea class="form-control project-description-textarea" id="description" name="description" placeholder="Describe your project here..." rows="5" v-model="fields.description" v-bind:class="{'is_warning': leastDescription , 'is_invalid': attemptSubmit && missingDescription}"></textarea>
+                        <p class="warning_feedback" v-bind:class="{'is_warning': leastDescription }">Please insert at least 10 characters</p>
+                        <p class="invalid_feedback" v-bind:class="{'is_invalid' : attemptSubmit && missingDescription}">Project Description field is required</p>
+                    </div>
+                    <div class="form-group upload-dash-line margin-bottom-15">
+                        <div class="row">
+                            <div class="col-md-12 upload-padding">
+                                <div class="col-sm-4 padding-left-13">
+                                    <file-upload
+                                            title=""
+                                            class="btn btn-default file-upload"
+                                            extensions="gif,jpg,jpeg,png,webp"
+                                            name="file"
+                                            post-action="/api/attachment/upload"
+                                            :multiple="true"
+                                            :files="attachUploads"
+                                            :events="attachUploadEvents"
+                                            ref="uploader">
+                                        UPLOAD FILES
+                                    </file-upload>
+                                </div>
+                                <div class="col-sm-8 padding-right-13">
+                                    <p class="drag-padding">Drag&drop any images or documents that might that might be helpful in explaining your project brief here.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group image-lists margin-bottom-60">
+                        <div class="row">
+                            <div class="col-md-12 upload-padding">
+                                <div class="image-list-div">
+                                    <img :src="imagesLinks.advancedImageIcon" class="show-image"/>
+                                </div>
+                                <div class="image-list-description">
+                                    <div class="vertical-image-list-description">
+                                        <p class="image-list-title">Image.jpg</p>
+                                        <p class="image-list-size">27.8KB</p>
+                                    </div>
+                                </div>
+                                <div class="image-list-delete">
+                                    <button class="btn btn-default btn-image-delete">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group position-relative" v-bind:class="{ 'has-error' : attemptSubmit && missingSkills }">
+                        <label for="skills-tags" class="post-form-group-label">What skills are required?</label>
+                        <p class="post-form-group-p">Great project descriptions include a little bit about yourself, details of what you are trying to achieve, and any decisions that you have already made about your project. If there are things you are unsure of, don't worry a freelancer will be able to help you fill in the blanks</p>
+                        <v-select
+                            v-model="skills"
+                            multiple
+                            taggable
+                            :debounce="250"
+                            :options="selectSkills"
+                            placeholder="What skills are required?"
+                            label="title"
+                            class="v-select-skills"
+                            v-bind:class="{'is_invalid' : attemptSubmit && missingSkills}"
+                        >
+                            <option slot="no-options">Start typing to skills</option>
+                        </v-select>
+                        <ul class="skills-suggestions">
+                            <li class="skills-suggestions-div">
+                                <p class="skills-suggestions-title">Skill Suggestions</p>
+                                <p class="skills-suggestion-exp">(add up to 5 more) </p>
+                            </li>
+                            <li class="skills-items" v-for="(selectSetProjectSkill,index) in selectSetProjectSkills" v-bind:class="{'active': fields.selected_project_skill == selectSetProjectSkill.id, 'last' : index == selectSetProjectSkills.length-1}">
+                                <p v-text="selectSetProjectSkill.title"> </p>
+                            </li>
+                        </ul>
+                        <p class="invalid_feedback" v-bind:class="{'is_invalid' : attemptSubmit && missingSkills}">Please select at least 1 skill.</p>
+                    </div>
+                    <div class="btn-group margin-top-75" data-toggle="buttons">
+                        <p class="post-form-group-label margin-bottom-24">How do you want to pay?</p>
+                        <label class="btn  btn-default custom-radio-button" v-bind:class="{ 'active btn-primary' : fields.payment_type == 'fixed' }">
+                            <input type="radio" name="{{ form.payment_type.name }}"   value="fixed"  v-model="fields.payment_type" id="fixed"  class="custom-type-input" checked> Fixed price project
+                            <div class="custom-type-hide-label margin-left-empty" v-if="fields.payment_type == 'hourly'"></div>
+                            <div class="custom-type-label" v-if="fields.payment_type =='fixed'"></div>
+                        </label>
+                        <label class="btn btn-default custom-radio-button" v-bind:class="{ 'active btn-primary' : fields.payment_type == 'hourly' }">
+                            <input type="radio" name="{{ form.payment_type.name }}" value="hourly" v-model="fields.payment_type" id="hourly" class="custom-type-input"/> Hourly project
+                            <div class="custom-type-hide-label" v-if="fields.payment_type == 'fixed'"></div>
+                            <div class="custom-type-label margin-left-12" v-if="fields.payment_type =='hourly'"></div>
+
+                        </label>
+                    </div>
+                    <div class="form-group margin-top-95">
+                        <label class="post-form-group-label margin-bottom-24">What is your estimated budged?</label>
+                        <div class="row">
+                            <div class="col-md-12" v-if="fields.payment_type == 'fixed'">
+                                <div id="fixed-project-type">
+                                    <div class="row">
+                                        <div class="col-md-2 col-sm-4">
+                                            <select class="form-control estimate-select" v-model="fields.currency">
+                                                <option v-bind:value="currency.id" v-for="currency in selectCurrency" v-text="currency.title"></option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-10 col-sm-8">
+                                            <select class="form-control estimate-select" v-model="fields.fixed_project_type">
+                                                <option v-bind:value="projectType.id" v-for="projectType in projectTypes" v-text="projectType.title"></option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div class="col-md-12" v-if="fields.payment_type == 'hourly'">
+                                <div id="hourly-project-type">
+                                    <select class="form-control estimate-select" v-model="fields.hourly_project_type">
+                                        <option v-bind:value="hourlyType.id" v-for="hourlyType in hourlyTypes" v-text="hourlyType.title"></option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group margin-top-34">
+                        <label class="post-form-group-label"> Optional Upgrades</label>
+                        <p class="post-form-group-p margin-bottom-45">Great project descriptions include a little bit about yourself, details of what you are trying to achieve, and any decisions that you have already made about your project. If there are things you are unsure of, don't worry a freelancer will be able to help you fill in the blanks</p>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <ul class="optional-upgrades">
+                                    <li class="optional-upgrade-item" @click="onChangeOptionGroup('standard')">
+                                        <label for="day-one" class="optional-upgrade-item-label control control--radio">
+                                            <input type="radio" name="optionalUpgrade" value="standard" id="standard" class="optional-upgrade-input" v-model="fields.optionalUpgrade">
+                                            <div class="control__indicator standard_control_indicator"></div>
+                                            <div class="optional-upgrade-item-image-tab standard-image-tab">
+                                                <div class="optional-upgrade-item-image standard-background"></div>
+                                            </div>
+                                            <div class="optional-upgrade-description">
+                                                <h4>Standard Project</h4>
+                                                <p>Your project will go live instantly, quotes will come in within minutes.</p>
+                                            </div>
+                                            <span class="optional-upgrade-span standard-span"  v-bind:class="{'active-color' : fields.optionalUpgrade == 'standard'}">free</span>
+                                            <!--<div class="optional-upgrade-small-description standard-small-description">-->
+                                                <!--<h4>Standard Project</h4>-->
+                                                <!--<p>Your project will go live instantly, quotes will come in within minutes.</p>-->
+                                            <!--</div>-->
+                                        </label>
+                                    </li>
+                                    <li class="optional-upgrade-item"  @click="onChangeOptionGroup('recruiter')">
+                                        <div class="recommended-background">
+                                            <p class="recommended-text">RECOMMENDED</p>
+                                        </div>
+                                        <label for="day-one" class="optional-upgrade-item-label  control control--radio">
+                                            <input type="radio" name="optionalUpgrade" value="recruiter" id="recruiter" class="optional-upgrade-input" v-model="fields.optionalUpgrade">
+                                            <div class="control__indicator"></div>
+                                            <div class="optional-upgrade-item-image-tab recruiter-image-tab">
+                                                <div class="optional-upgrade-item-image recruiter-background" ></div>
+                                            </div>
+                                            <div class="optional-upgrade-description recruiter-description">
+                                                <h4>Recruiter Project</h4>
+                                                <p>One of our experts will find and recommend the perfect freelancer for your job, saving you time. The best experience for new users or those short on time</p>
+                                            </div>
+                                            <span class="optional-upgrade-span recruiter-span" v-bind:class="{'active-color' : fields.optionalUpgrade == 'recruiter'}">$19</span>
+                                            <!--<div class="optional-upgrade-small-description recruiter-small-description">-->
+                                                <!--<h4>Recruiter Project</h4>-->
+                                                <!--<p>One of our experts will find and recommend the perfect freelancer for your job, saving you time. The best experience for new users or those short on time</p>-->
+                                            <!--</div>-->
+                                        </label>
+                                    </li>
+                                    <li class="optional-upgrade-item margin-bottom-empty"  @click="onChangeOptionGroup('advanced')">
+                                        <label for="day-one" class="optional-upgrade-item-label control control--radio">
+                                            <input type="radio" name="optionalUpgrade" value="advanced" id="advanced" class="optional-upgrade-input" v-model="fields.optionalUpgrade">
+                                            <div class="control__indicator"></div>
+                                            <div class="optional-upgrade-item-image-tab advanced-image-tab">
+                                                <div class="optional-upgrade-item-image advanced-background" ></div>
+                                            </div>
+                                            <div class="optional-upgrade-description hide-border">
+                                                <h4>Advanced</h4>
+                                                <p>You can optionally select some upgrades to get the best results.</p>
+                                            </div>
+
+                                            <!--<div class="optional-upgrade-small-description advanced-small-description">-->
+                                                <!--<h4>Advanced</h4>-->
+                                                <!--<p>You can optionally select some upgrades to get the best results.</p>-->
+                                            <!--</div>-->
+                                        </label>
+                                    </li>
+                                    <li class="optional-upgrade-item border-none" v-if="fields.optionalUpgrade == 'advanced'">
+                                        <ul class="sub-advanced-ul">
+                                            <!--<li @click="onChangeAdvancedGroup('recruiter')">-->
+                                                <!--<div class="sub-advanced-img-div">-->
+                                                    <!--<div class="sub-advanced-img ad-recruiter-background"></div>-->
+                                                <!--</div>-->
+                                                <!--<div class="sub-advanced-description">-->
+                                                    <!--<p class="sub-advanced-description-detail">One of our experts will find and recommend the perfect freelancer for your job, saving you time. The best experience for new users</p>-->
+                                                <!--</div>-->
+                                                <!--<div class="sub-advanced-description-span-div">-->
+                                                    <!--<span class="sub-advanced-description-span">$19.00</span>-->
+                                                <!--</div>-->
+                                                <!--<input type="checkbox" v-model="subAdvanced" value="recruiter" name="subAdvanced" class="sub-advanced-input radio-custom"/>-->
+                                                <!--<div class="radio-custom-label" v-bind:class="{ 'checked': subAdvanced.indexOf('recruiter') >= 0 }">-->
+                                                    <!--<div class="checkbox-custom-background"></div>-->
+                                                <!--</div>-->
+                                            <!--</li>-->
+                                            <li @click="onChangeAdvancedGroup('recruiter')">
+                                                <div class="sub-advanced-img-div">
+                                                    <div class="sub-advanced-img ad-recruiter-background"></div>
+                                                </div>
+                                                <div class="sub-advanced-description">
+                                                    <p class="sub-advanced-description-detail">One of our experts will find and recommend the perfect freelancer for your job, saving you time. The best experience for new users</p>
+                                                </div>
+                                                <div class="sub-advanced-description-span-div">
+                                                    <span class="sub-advanced-description-span">$19.00</span>
+                                                </div>
+                                                <input type="checkbox" v-model="subAdvanced" value="recruiter" name="subAdvanced" class="sub-advanced-input radio-custom"/>
+                                                <div class="radio-custom-label" v-bind:class="{ 'checked': subAdvanced.indexOf('recruiter') >= 0 }">
+                                                    <div class="checkbox-custom-background"></div>
+                                                </div>
+                                                <!--<span class="sub-advanced-small-description-span">$19.00</span>-->
+                                                <!--<div class="sub-advanced-small-description">-->
+                                                    <!--<p class="sub-advanced-description-detail">One of our experts will find and recommend the perfect freelancer for your job, saving you time. The best experience for new users</p>-->
+                                                <!--</div>-->
+                                            </li>
+                                            <li @click="onChangeAdvancedGroup('featured')">
+                                                <div class="sub-advanced-img-div">
+                                                    <div class="sub-advanced-img ad-featured-background"></div>
+                                                </div>
+                                                <div class="sub-advanced-description">
+                                                    <p class="sub-advanced-description-detail">Featured projects attract higher-quality bids and are displayed pro-minently in the 'Featured Jobs and Contests' page.</p>
+                                                </div>
+                                                <div class="sub-advanced-description-span-div">
+                                                    <span class="sub-advanced-description-span">$9.00</span>
+                                                </div>
+                                                <input type="checkbox" v-model="subAdvanced" value="featured" name="subAdvanced" class="sub-advanced-input radio-custom"/>
+                                                <div class="radio-custom-label" v-bind:class="{ 'checked': subAdvanced.indexOf('featured') >= 0 }">
+                                                    <div class="checkbox-custom-background"></div>
+                                                </div>
+                                                <!--<span class="sub-advanced-small-description-span">$9.00</span>-->
+                                                <!--<div class="sub-advanced-small-description">-->
+                                                    <!--<p class="sub-advanced-description-detail">Featured projects attract higher-quality bids and are displayed pro-minently in the 'Featured Jobs and Contests' page.</p>-->
+                                                <!--</div>-->
+                                            </li>
+                                            <li @click="onChangeAdvancedGroup('urgent')">
+                                                <div class="sub-advanced-img-div">
+                                                    <div class="sub-advanced-img ad-urgent-background"></div>
+                                                </div>
+                                                <div class="sub-advanced-description">
+                                                    <p class="sub-advanced-description-detail">Make your project stand out and let freelancers know that your job is time sensitive.</p>
+                                                </div>
+                                                <div class="sub-advanced-description-span-div">
+                                                    <span class="sub-advanced-description-span">$9.00</span>
+                                                </div>
+                                                <input type="checkbox" v-model="subAdvanced" value="urgent" name="subAdvanced" class="sub-advanced-input radio-custom"/>
+                                                <div class="radio-custom-label" v-bind:class="{ 'checked': subAdvanced.indexOf('urgent') >= 0 }">
+                                                    <div class="checkbox-custom-background"></div>
+                                                </div>
+                                                <!--<span class="sub-advanced-small-description-span">$9.00</span>-->
+                                                <!--<div class="sub-advanced-small-description">-->
+                                                    <!--<p class="sub-advanced-description-detail">Make your project stand out and let freelancers know that your job is time sensitive.</p>-->
+                                                <!--</div>-->
+                                            </li>
+                                            <li @click="onChangeAdvancedGroup('private')">
+                                                <div class="sub-advanced-img-div">
+                                                    <div class="sub-advanced-img ad-private-background"></div>
+                                                </div>
+                                                <div class="sub-advanced-description">
+                                                    <p class="sub-advanced-description-detail">Hide project details from search engines and users that are not logged in , for projects that you need to keep confidential.</p>
+                                                </div>
+                                                <div class="sub-advanced-description-span-div">
+                                                    <span class="sub-advanced-description-span">$19.00</span>
+                                                </div>
+                                                <input type="checkbox" v-model="subAdvanced" value="private" name="subAdvanced" class="sub-advanced-input radio-custom"/>
+                                                <div class="radio-custom-label" v-bind:class="{ 'checked': subAdvanced.indexOf('private') >= 0 }">
+                                                    <div class="checkbox-custom-background"></div>
+                                                </div>
+                                                <!--<span class="sub-advanced-small-description-span">$19.00</span>-->
+                                                <!--<div class="sub-advanced-small-description">-->
+                                                    <!--<p class="sub-advanced-description-detail">Hide project details from search engines and users that are not logged in , for projects that you need to keep confidential.</p>-->
+                                                <!--</div>-->
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group margin-top-40 margin-bottom-50">
+                        <div class="row">
+                            <div class="col-md-4 margin-bottom-20">
+                                <button type="submit" class="btn  btn-primary btn-customized" v-bind:disabled="isLoading" @click.prevent="handleSaveClick">Post My Project</button>
+                            </div>
+                            <div class="col-md-8 margin-bottom-20">
+                                <p class="total-budget">Total: $19.50</p>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="row">
+                    <div class="col-md-12">
+                        <p class="footer-text">By clicking 'Post My project', you agree to the <span class="terms-and-condition">Terms&conditions</span> and <span class="privacy-policy">Privacy Policy</span></p>
+                        <p class="footer-text">If you decide to award your project we charge a 3% commission (minimum project fees apply).</p>
+                    </div>
+                </div>
+                <div class="row margin-top-65 margin-bottom-40">
+                    <div class="col-md-12 hr-row">
+                    </div>
+                </div>
+                <div class="row margin-bottom-50">
+                    <div class="col-md-12 margin-bottom-15">
+                        <p>Copyright@ 2018 JobDene (ACN 142 189 759)</p>
+                    </div>
+                    <div class="col-md-12">
+                        <a href="javascript:void(0);" class="footer-link">Privacy Policy</a>
+                        <a href="javascript:void(0);" class="footer-link">Terms and conditions</a>
+                        <a href="javascript:void(0);" class="footer-link">Copyright infringement</a>
+                        <a href="javascript:void(0);" class="footer-link">Policy</a>
+                        <a href="javascript:void(0);" class="footer-link">Code of Conduct</a>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="backgroundImage"></div>
+</main>
+
+<!--<main id="sm-project-post" class="container standard">-->
+      <!--&lt;!&ndash;<div class="page-header">&ndash;&gt;-->
+        <!--&lt;!&ndash;<div class="page-header-inner">&ndash;&gt;-->
+          <!--&lt;!&ndash;<h1>Tell us what you need done</h1>&ndash;&gt;-->
+          <!--&lt;!&ndash;<div class="page-header-description">&ndash;&gt;-->
+          <!--&lt;!&ndash;</div>&ndash;&gt;-->
+        <!--&lt;!&ndash;</div>&ndash;&gt;-->
+      <!--&lt;!&ndash;</div>&ndash;&gt;-->
+        <!--<div class="row tell-us-top">-->
+            <!--<div class="col-md-12">-->
+                <!--<h1 class="tell-us-header">Tell us what you need done</h1>-->
+                <!--<p>Get free quotes from skilled freelancers within minutes, view profiles, ratings and portfolios and chat with them . Pay the freelancer only when you are 100% satisfied with their work.</p>-->
+            <!--</div>-->
+        <!--</div>-->
+      <!--<div class="row margin-top-20">-->
+        <!--<div class="col-md-12">-->
+            <!--{{ form.csrf_token }}-->
+
+            <!--<form class="form" method="post" role="form" id="buyer-request-form">-->
+                  <!--<div class="form-group margin-bottom-30">-->
+                    <!--<label for="inputEmail3" class="post-form-group-label">Choose a name for your project</label>-->
+                      <!--<input class="form-control project-title-input" id="title" name="title" placeholder="e.g. Build me a website" type="text" value="" v-model="fields.title" >-->
+                  <!--</div>-->
+
+                <!--<div class="form-group margin-bottom-30">-->
+                    <!--<label for="inputEmail3" class="post-form-group-label">Tell us more about your project</label>-->
+                    <!--<p class="post-form-group-p">Great project descriptions include a little bit about yourself, details of what you are trying to achieve, and any decisions that you have already made about your project. If there are things you are unsure of, don't worry a freelancer will be able to help you fill in the blanks</p>-->
+                    <!--<textarea class="form-control project-description-textarea" id="description" name="description" placeholder="Describe your project here..." rows="5" v-model="fields.description"></textarea>-->
+                        <!--&lt;!&ndash;{{ form.description(class_="form-control", placeholder="Describe your project here...", rows =5) }}&ndash;&gt;-->
+                <!--</div>-->
+
+                  <!--<div class="form-group upload-dash-line margin-bottom-30">-->
+                      <!--<div class="row">-->
+                          <!--<div class="col-md-12 upload-padding">-->
+
+                            <!--<div class="col-sm-4">-->
+                                <!--&lt;!&ndash;<label class="sr-only" for="inputHelpBlock">Upload files</label>&ndash;&gt;-->
+                                <!--&lt;!&ndash;<span class="btn btn-default fileinput-button">&ndash;&gt;-->
+                                    <!--&lt;!&ndash;<i class="glyphicon glyphicon-plus"></i>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;<span>UPLOAD FILES</span>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;<input id="fileupload" type="file" name="file" multiple>&ndash;&gt;-->
+                                <!--&lt;!&ndash;</span>&ndash;&gt;-->
+                                <!--&lt;!&ndash;<div id="fileupload-results"></div>&ndash;&gt;-->
+                                <!--&lt;!&ndash;{{ form.files(type='hidden') }}&ndash;&gt;-->
+                                <!--<file-upload-->
+                                    <!--title=""-->
+                                    <!--class="btn btn-default file-upload"-->
+                                    <!--extensions="gif,jpg,jpeg,png,webp"-->
+                                    <!--name="file"-->
+                                    <!--post-action="/api/attachment/upload"-->
+                                    <!--:multiple="true"-->
+                                    <!--:files="attachUploads"-->
+                                    <!--:events="attachUploadEvents"-->
+                                    <!--ref="uploader">-->
+                                    <!--UPLOAD FILES-->
+                                <!--</file-upload>-->
+                            <!--</div>-->
+                              <!--<div class="col-sm-8">-->
+                                  <!--<p class="drag-padding">Drag&drop any images or documents that might that might be helpful in explaining your project brief here.</p>-->
+                              <!--</div>-->
+                            <!--</div>-->
+                      <!--</div>-->
+                  <!--</div>-->
+
+
+                  <!--<div class="form-group margin-bottom-50">-->
+                      <!--<label for="skills-tags" class="post-form-group-label">What skills are required?</label>-->
+                      <!--<p class="post-form-group-p">Great project descriptions include a little bit about yourself, details of what you are trying to achieve, and any decisions that you have already made about your project. If there are things you are unsure of, don't worry a freelancer will be able to help you fill in the blanks</p>-->
+                        <!--&lt;!&ndash;<select class="form-control" multiple="multiple" id="skills-tags" name="skills">&ndash;&gt;-->
+                            <!--&lt;!&ndash;&lt;!&ndash; # TODO: make skill search via API &ndash;&gt;&ndash;&gt;-->
+                            <!--&lt;!&ndash;{% for skill in available_skills %}&ndash;&gt;-->
+                                <!--&lt;!&ndash;<option value="{{ skill.id }}">{{ skill.skill_name }}</option>&ndash;&gt;-->
+                            <!--&lt;!&ndash;{% endfor %}&ndash;&gt;-->
+                        <!--&lt;!&ndash;</select>&ndash;&gt;-->
+                      <!--<v-select-->
+                          <!--v-model="fields.skills"-->
+                          <!--multiple-->
+                          <!--taggable-->
+                          <!--:debounce="250"-->
+                          <!--:options="selectSkills"-->
+                          <!--placeholder="Search for skills or create your own"-->
+                          <!--label="title"-->
+                          <!--data-tip="This is the text of the tooltip2">-->
+                          <!--<option slot="no-options">Start typing to skills</option>-->
+                      <!--</v-select>-->
+                  <!--</div>-->
+                  <!--<div class="form-group">-->
+                      <!--<label class="post-form-group-label">-->
+                            <!--How do you want to pay?-->
+                      <!--</label>-->
+                  <!--</div>-->
+                    <!--<div class="btn-group margin-bottom-30" data-toggle="buttons">-->
+                        <!--<label class="btn  btn-default custom-radio-button" v-bind:class="{ 'active btn-primary' : fields.payment_type == 'fixed' }">-->
+                            <!--<input type="radio" name="{{ form.payment_type.name }}"   value="fixed"  v-model="fields.payment_type" id="fixed"  class="custom-type-input" checked> Fixed price project-->
+                            <!--<div class="custom-type-hide-label" v-if="fields.payment_type == 'hourly'"></div>-->
+                            <!--<div class="custom-type-label" v-if="fields.payment_type =='fixed'"></div>-->
+                        <!--</label>-->
+                        <!--<label class="btn btn-default custom-radio-button" v-bind:class="{ 'active btn-primary' : fields.payment_type == 'hourly' }">-->
+                            <!--<input type="radio" name="{{ form.payment_type.name }}" value="hourly" v-model="fields.payment_type" id="hourly" class="custom-type-input"/> Hourly project-->
+                            <!--<div class="custom-type-hide-label" v-if="fields.payment_type == 'fixed'"></div>-->
+                            <!--<div class="custom-type-label" v-if="fields.payment_type =='hourly'"></div>-->
+
+                        <!--</label>-->
+                    <!--</div>-->
+                  <!--<div class="form-group margin-bottom-50 margin-top-20">-->
+                      <!--<label class="post-form-group-label">What is your estimated budged?</label>-->
+                       <!--<div class="row">-->
+                           <!--<div class="col-md-12" v-if="fields.payment_type == 'fixed'">-->
+                               <!--<div id="fixed-project-type">-->
+                                   <!--<div class="row">-->
+                                       <!--<div class="col-md-2 col-sm-3">-->
+                                           <!--<select class="form-control estimate-select" v-model="fields.currency">-->
+                                               <!--<option v-bind:value="currency.id" v-for="currency in selectCurrency" v-text="currency.title"></option>-->
+                                           <!--</select>-->
+                                       <!--</div>-->
+                                       <!--<div class="col-md-10 col-sm-9">-->
+                                           <!--<select class="form-control estimate-select" v-model="fields.fixed_project_type">-->
+                                               <!--<option v-bind:value="projectType.id" v-for="projectType in projectTypes" v-text="projectType.title"></option>-->
+                                           <!--</select>-->
+                                       <!--</div>-->
+                                   <!--</div>-->
+
+                               <!--</div>-->
+                           <!--</div>-->
+                           <!--<div class="col-md-12" v-if="fields.payment_type == 'hourly'">-->
+                               <!--<div id="hourly-project-type">-->
+                                   <!--{{ form.hourly_project_type(class="form-control") }}-->
+                               <!--</div>-->
+                           <!--</div>-->
+
+                    <!--</div>-->
+                  <!--</div>-->
+
+                  <!--<div class="form-group margin-top-20">-->
+                      <!--<label class="post-form-group-label"> Optional Upgrades</label>-->
+                      <!--<p class="post-form-group-p margin-bottom-30">Great project descriptions include a little bit about yourself, details of what you are trying to achieve, and any decisions that you have already made about your project. If there are things you are unsure of, don't worry a freelancer will be able to help you fill in the blanks</p>-->
+
+                      <!--<div class="row">-->
+                          <!--<div class="col-md-12">-->
+                              <!--<ul class="optional-upgrades">-->
+                                  <!--<li class="optional-upgrade-item" @click="onChangeOptionGroup('standard')">-->
+                                      <!--<label for="day-one" class="optional-upgrade-item-label control control&#45;&#45;radio">-->
+                                          <!--<input type="radio" name="optionalUpgrade" value="standard" id="standard" class="optional-upgrade-input" v-model="fields.optionalUpgrade">-->
+                                          <!--<div class="control__indicator"></div>-->
+                                          <!--<div class="optional-upgrade-item-image-tab">-->
+                                              <!--&lt;!&ndash;<img :src="imagesLinks.standardIcon" class="optional-upgrade-item-image">&ndash;&gt;-->
+                                              <!--<div class="optional-upgrade-item-image standard-background" ></div>-->
+                                          <!--</div>-->
+                                           <!--<div class="optional-upgrade-description">-->
+                                               <!--<h4>Standard Project</h4>-->
+                                               <!--<p>Your project will go live instantly, quotes will come in within minutes.</p>-->
+                                           <!--</div>-->
+                                          <!--<span class="optional-upgrade-span"  v-bind:class="{'active-color' : fields.optionalUpgrade == 'standard'}">free</span>-->
+                                      <!--</label>-->
+                                  <!--</li>-->
+                                  <!--<li class="optional-upgrade-item"  @click="onChangeOptionGroup('recruiter')">-->
+                                      <!--<label for="day-one" class="optional-upgrade-item-label  control control&#45;&#45;radio">-->
+                                          <!--<div class="recommended-background"></div>-->
+                                          <!--<input type="radio" name="optionalUpgrade" value="recruiter" id="recruiter" class="optional-upgrade-input" v-model="fields.optionalUpgrade">-->
+                                          <!--<div class="control__indicator"></div>-->
+                                          <!--<div class="optional-upgrade-item-image-tab">-->
+                                              <!--&lt;!&ndash;<img :src="imagesLinks.recruiterIcon" class="optional-upgrade-item-image">&ndash;&gt;-->
+                                              <!--<div class="optional-upgrade-item-image recruiter-background" ></div>-->
+                                          <!--</div>-->
+                                          <!--<div class="optional-upgrade-description">-->
+                                              <!--<h4>Recruiter Project</h4>-->
+                                              <!--<p>One of our experts will find and recommend the perfect freelancer for your job, saving you time. The best experience for new users or those short on time</p>-->
+                                          <!--</div>-->
+                                          <!--<span class="optional-upgrade-span" v-bind:class="{'active-color' : fields.optionalUpgrade == 'recruiter'}">$19</span>-->
+                                      <!--</label>-->
+                                  <!--</li>-->
+                                  <!--<li class="optional-upgrade-item margin-bottom-empty"  @click="onChangeOptionGroup('advanced')">-->
+                                      <!--<label for="day-one" class="optional-upgrade-item-label control control&#45;&#45;radio">-->
+                                          <!--<input type="radio" name="optionalUpgrade" value="advanced" id="advanced" class="optional-upgrade-input" v-model="fields.optionalUpgrade">-->
+                                          <!--<div class="control__indicator"></div>-->
+                                          <!--<div class="optional-upgrade-item-image-tab">-->
+                                              <!--&lt;!&ndash;<img :src="imagesLinks.advancedIcon" class="optional-upgrade-item-image">&ndash;&gt;-->
+                                              <!--<div class="optional-upgrade-item-image advanced-background" ></div>-->
+                                          <!--</div>-->
+                                          <!--<div class="optional-upgrade-description hide-border">-->
+                                              <!--<h4>Advanced</h4>-->
+                                              <!--<p>You can optionally select some upgrades to get the best results.</p>-->
+                                          <!--</div>-->
+                                      <!--</label>-->
+                                  <!--</li>-->
+                                  <!--<li class="optional-upgrade-item" v-if="fields.optionalUpgrade == 'advanced'">-->
+                                        <!--<ul class="sub-advanced-ul">-->
+                                            <!--<li @click="onChangeAdvancedGroup('recruiter')">-->
+                                                <!--<div class="sub-advanced-img-div">-->
+                                                    <!--&lt;!&ndash;<img :src="imagesLinks.advancedRecruiterIcon" class="sub-advanced-img"/>&ndash;&gt;-->
+                                                    <!--<div class="sub-advanced-img ad-recruiter-background"></div>-->
+                                                <!--</div>-->
+                                                <!--<div class="sub-advanced-description">-->
+                                                    <!--<p class="sub-advanced-description-detail">One of our experts will find and recommend the perfect freelancer for your job, saving you time. The best experience for new users</p>-->
+                                                <!--</div>-->
+                                                <!--<span class="sub-advanced-description-span">$19.00</span>-->
+                                                <!--<input type="radio" v-model="fields.subAdvanced" value="recruiter" name="subAdvanced" class="sub-advanced-input radio-custom"/>-->
+                                                <!--<div class="radio-custom-label"></div>-->
+                                            <!--</li>-->
+                                            <!--<li @click="onChangeAdvancedGroup('featured')">-->
+                                                <!--<div class="sub-advanced-img-div">-->
+                                                    <!--&lt;!&ndash;<img :src="imagesLinks.advancedFeaturedIcon" class="sub-advanced-img"/>&ndash;&gt;-->
+                                                    <!--<div class="sub-advanced-img ad-featured-background"></div>-->
+                                                <!--</div>-->
+                                                <!--<div class="sub-advanced-description">-->
+                                                    <!--<p class="sub-advanced-description-detail">Featured projects attract higher-quality bids and are displayed pro-minently in the 'Featured Jobs and Contests' page.</p>-->
+                                                <!--</div>-->
+                                                <!--<span class="sub-advanced-description-span">$9.00</span>-->
+                                                <!--<input type="radio" v-model="fields.subAdvanced" value="featured" name="subAdvanced" class="sub-advanced-input radio-custom"/>-->
+                                                <!--<div class="radio-custom-label"></div>-->
+                                            <!--</li>-->
+                                           <!--<li @click="onChangeAdvancedGroup('urgent')">-->
+                                                <!--<div class="sub-advanced-img-div">-->
+                                                    <!--&lt;!&ndash;<img :src="imagesLinks.advancedUrgentIcon" class="sub-advanced-img"/>&ndash;&gt;-->
+                                                    <!--<div class="sub-advanced-img ad-urgent-background"></div>-->
+                                                <!--</div>-->
+                                                <!--<div class="sub-advanced-description">-->
+                                                    <!--<p class="sub-advanced-description-detail">Make your project stand out and let freelancers know that your job is time sensitive.</p>-->
+                                                <!--</div>-->
+                                                <!--<span class="sub-advanced-description-span">$9.00</span>-->
+                                                <!--<input type="radio" v-model="fields.subAdvanced" value="urgent" name="subAdvanced" class="sub-advanced-input radio-custom"/>-->
+                                               <!--<div class="radio-custom-label"></div>-->
+                                            <!--</li>-->
+                                            <!--<li @click="onChangeAdvancedGroup('private')">-->
+                                                <!--<div class="sub-advanced-img-div">-->
+                                                    <!--&lt;!&ndash;<img :src="imagesLinks.advancedPrivateIcon" class="sub-advanced-img"/>&ndash;&gt;-->
+                                                    <!--<div class="sub-advanced-img ad-private-background"></div>-->
+                                                <!--</div>-->
+                                                <!--<div class="sub-advanced-description">-->
+                                                    <!--<p class="sub-advanced-description-detail">Hide project details from search engines and users that are not logged in , for projects that you need to keep confidential.</p>-->
+                                                <!--</div>-->
+                                                <!--<span class="sub-advanced-description-span">$19.00</span>-->
+                                                <!--<input type="radio" v-model="fields.subAdvanced" value="private" name="subAdvanced" class="sub-advanced-input radio-custom"/>-->
+                                                <!--<div class="radio-custom-label"></div>-->
+                                            <!--</li>-->
+                                        <!--</ul>-->
+                                  <!--</li>-->
+                              <!--</ul>-->
+                          <!--</div>-->
+                      <!--</div>-->
+                  <!--</div>-->
+
+                  <!--<div class="form-group margin-bottom-50">-->
+                      <!--<div class="row">-->
+                          <!--<div class="col-md-4 col-sm-4">-->
+                              <!--<button type="submit" class="btn  btn-primary btn-customized">Post My Project</button>-->
+                          <!--</div>-->
+                          <!--<div class="col-md-8 col-sm-8">-->
+                              <!--<p class="total-budget">Total: $19.50</p>-->
+                          <!--</div>-->
+                      <!--</div>-->
+                  <!--</div>-->
+            <!--</form>-->
+        <!--</div>-->
+      <!--</div>-->
+    <!--<div class="row margin-top-50">-->
+        <!--<div class="col-md-12">-->
+                <!--<p>By clicking 'Post My project', you agree to the Terms&conditions and Privacy Policy</p>-->
+                <!--<p>If you decide to award your project we charge a 3% commission (minimum project fees apply).</p>-->
+        <!--</div>-->
+    <!--</div>-->
+    <!--<div class="row margin-top-50 margin-bottom-20">-->
+        <!--<div class="col-md-12">-->
+            <!--<hr class="hr-row"/>-->
+        <!--</div>-->
+    <!--</div>-->
+    <!--<div class="row margin-bottom-50">-->
+        <!--<div class="col-md-12">-->
+            <!--<p>Copyright@ 2018 JobDene (ACN 142 189 759)</p>-->
+            <!--<a href="#" class="margin-right-20">Privacy Policy</a>-->
+            <!--<a href="#" class="margin-right-20">Terms and conditions</a>-->
+            <!--<a href="#" class="margin-right-20">Copyright infringement</a>-->
+            <!--<a href="#" class="margin-right-20">Policy</a>-->
+            <!--<a href="#" class="margin-right-20">Code of Conduct</a>-->
+
+        <!--</div>-->
+    <!--</div>-->
+<!--</main>-->
+{% endblock %}

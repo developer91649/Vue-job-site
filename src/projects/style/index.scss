@@ -1,0 +1,14 @@
+@import "~bootstrap/dist/css/bootstrap.css";
+@import "~font-awesome/css/font-awesome.css";
+
+@import "./global.scss";
+@import "../../shared/style/header.scss";
+@import "../../shared/style/footer.scss";
+
+@import "./style.css";
+@import "./post.css";
+@import "./responsive.css";
+
+.background{
+  background-color: #f1f1f1;
+}
